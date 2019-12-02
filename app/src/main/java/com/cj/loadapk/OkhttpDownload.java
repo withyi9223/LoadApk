@@ -12,7 +12,6 @@ import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -90,10 +89,22 @@ public class OkhttpDownload implements INetManager {
         }
         service.download(url).subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .map(new Func1<ResponseBody, File>() {
+                .observeOn(Schedulers.io())
+                .subscribe(new Observer<ResponseBody>() {
+                    
                     @Override
-                    public File call(ResponseBody responseBody) {
+                    public void onCompleted() {
+                        callBack.success(apkFile);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                        callBack.failed(e);
+                    }
+
+                    @Override
+                    public void onNext(final ResponseBody responseBody) {
                         InputStream inputStream = null;
                         OutputStream outputStream = null;
                         try {
@@ -109,7 +120,6 @@ public class OkhttpDownload implements INetManager {
                                 outputStream.flush();
                                 callBack.progress((int) (curLen * 1.0f / total * 100));
                             }
-                            return apkFile;
                         } catch (Throwable e) {
                             e.printStackTrace();
                             callBack.failed(e);
@@ -129,26 +139,9 @@ public class OkhttpDownload implements INetManager {
                                 }
                             }
                         }
-
-                        return null;
                     }
-                }).subscribe(new Observer<File>() {
-            @Override
-            public void onCompleted() {
 
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                e.printStackTrace();
-                callBack.failed(e);
-            }
-
-            @Override
-            public void onNext(File file) {
-                callBack.success(file);
-            }
-        });
+                });
 
     }
 }

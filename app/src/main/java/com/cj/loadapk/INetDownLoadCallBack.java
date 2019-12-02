@@ -2,6 +2,8 @@ package com.cj.loadapk;
 
 import java.io.File;
 
+import io.reactivex.disposables.Disposable;
+
 /**
  * ━━━━━━神兽出没━━━━━━
  * 　　　┏┓　　　┏┓
@@ -33,4 +35,6 @@ interface INetDownLoadCallBack {
     void progress(int pregress);
 
     void failed(Throwable throwable);
+    
+    void cancel(Disposable d);
 }

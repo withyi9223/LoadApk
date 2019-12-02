@@ -1,10 +1,10 @@
 package com.cj.loadapk;
 
+import io.reactivex.Observable;
 import okhttp3.ResponseBody;
 import retrofit2.http.GET;
 import retrofit2.http.Streaming;
 import retrofit2.http.Url;
-import rx.Observable;
 
 /**
  * ━━━━━━神兽出没━━━━━━

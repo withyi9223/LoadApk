@@ -1,11 +1,11 @@
 package com.cj.loadapk;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +18,8 @@ import androidx.core.content.FileProvider;
 import androidx.fragment.app.DialogFragment;
 
 import java.io.File;
+
+import io.reactivex.disposables.Disposable;
 
 /**
  * ━━━━━━神兽出没━━━━━━
@@ -73,6 +75,14 @@ public class UpdateDialog extends DialogFragment {
         return view;
     }
 
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        disposable.dispose();
+    }
+
+    Disposable disposable;
+    
     private void initView(View view) {
         progressBar = view.findViewById(R.id.pb_progress);
         mTvInfo = view.findViewById(R.id.tv_info);
@@ -88,7 +98,7 @@ public class UpdateDialog extends DialogFragment {
                                 new INetDownLoadCallBack() {
                                     @Override
                                     public void success(final File apkFile) {
-                                        Log.e("ddd", apkFile.getAbsolutePath());
+                                        if (getActivity() == null) return;
                                         getActivity().runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
@@ -109,7 +119,7 @@ public class UpdateDialog extends DialogFragment {
 
                                     @Override
                                     public void progress(final int pregress) {
-                                        Log.e("ddd", pregress + "");
+                                        if (getActivity() == null) return;
                                         getActivity().runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
@@ -121,6 +131,7 @@ public class UpdateDialog extends DialogFragment {
 
                                     @Override
                                     public void failed(Throwable throwable) {
+                                        if (getActivity() == null) return;
                                         getActivity().runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
@@ -128,6 +139,11 @@ public class UpdateDialog extends DialogFragment {
                                                 mTvOk.setText("下载");
                                             }
                                         });
+                                    }
+
+                                    @Override
+                                    public void cancel(Disposable d) {
+                                        disposable = d;
                                     }
                                 });
             }

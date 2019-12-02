@@ -1,18 +1,21 @@
 package com.cj.loadapk;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
-import rx.Observer;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
  * ━━━━━━神兽出没━━━━━━
@@ -48,7 +51,7 @@ public class OkhttpDownload implements INetManager {
             retrofit = new Retrofit.Builder()
                     .baseUrl("http://mobiles.kooche.cn")
                     .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .build();
         }
         if (service == null) {
@@ -59,19 +62,26 @@ public class OkhttpDownload implements INetManager {
 
     @Override
     public void get(final INetCallback callback) {
-        service.getAppVersion().subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
+        service.getAppVersion()
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread(), true)
+                .unsubscribeOn(Schedulers.io())
                 .subscribe(new Observer<UpdateBean>() {
-                    @Override
-                    public void onCompleted() {
-
-                    }
 
                     @Override
                     public void onError(Throwable e) {
                         e.printStackTrace();
                         callback.failed(e);
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
                     }
 
                     @Override
@@ -91,16 +101,23 @@ public class OkhttpDownload implements INetManager {
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
                 .subscribe(new Observer<ResponseBody>() {
-                    
+                    Disposable disposable;
+
                     @Override
-                    public void onCompleted() {
-                        callBack.success(apkFile);
+                    public void onSubscribe(Disposable d) {
+                        callBack.cancel(d);
+                        disposable = d;
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         e.printStackTrace();
                         callBack.failed(e);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        callBack.success(apkFile);
                     }
 
                     @Override
@@ -119,6 +136,7 @@ public class OkhttpDownload implements INetManager {
                                 outputStream.write(bytes, 0, bufferLen);
                                 outputStream.flush();
                                 callBack.progress((int) (curLen * 1.0f / total * 100));
+                                Log.e("ddd", (int) (curLen * 1.0f / total * 100) + "");
                             }
                         } catch (Throwable e) {
                             e.printStackTrace();

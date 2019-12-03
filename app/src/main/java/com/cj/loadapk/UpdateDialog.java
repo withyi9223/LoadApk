@@ -15,7 +15,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
-import androidx.fragment.app.DialogFragment;
+
+import com.trello.rxlifecycle3.components.support.RxDialogFragment;
 
 import java.io.File;
 
@@ -44,7 +45,7 @@ import io.reactivex.disposables.Disposable;
  * <p>
  * Created by zengyi on 2019/12/1.
  */
-public class UpdateDialog extends DialogFragment {
+public class UpdateDialog extends RxDialogFragment {
 
     private ProgressBar progressBar;
     private TextView mTvInfo;
@@ -78,11 +79,13 @@ public class UpdateDialog extends DialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        disposable.dispose();
+        if (disposable != null) {
+            disposable.dispose();
+        }
     }
 
     Disposable disposable;
-    
+
     private void initView(View view) {
         progressBar = view.findViewById(R.id.pb_progress);
         mTvInfo = view.findViewById(R.id.tv_info);
@@ -94,7 +97,7 @@ public class UpdateDialog extends DialogFragment {
             public void onClick(View v) {
                 mTvOk.setEnabled(false);
                 AppUpdateUtil.getInstance().getiNetManager()
-                        .download(bean.data.downloadAddress, new File(getActivity().getCacheDir().getPath() + "/demo.apk"),
+                        .download(UpdateDialog.this,bean.data.downloadAddress, new File(getActivity().getCacheDir().getPath() + "/demo.apk"),
                                 new INetDownLoadCallBack() {
                                     @Override
                                     public void success(final File apkFile) {
@@ -143,7 +146,7 @@ public class UpdateDialog extends DialogFragment {
 
                                     @Override
                                     public void cancel(Disposable d) {
-                                        disposable = d;
+                                        //disposable = d;
                                     }
                                 });
             }

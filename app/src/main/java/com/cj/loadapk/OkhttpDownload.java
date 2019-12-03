@@ -1,6 +1,9 @@
 package com.cj.loadapk;
 
+import android.content.Context;
 import android.util.Log;
+
+import androidx.fragment.app.Fragment;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,7 +12,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
@@ -61,11 +63,10 @@ public class OkhttpDownload implements INetManager {
     }
 
     @Override
-    public void get(final INetCallback callback) {
+    public void get(Context context, final INetCallback callback) {
         service.getAppVersion()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread(), true)
-                .unsubscribeOn(Schedulers.io())
+                .compose(RxUtils.<UpdateBean>applySchedulers())
+                .compose(RxUtils.<UpdateBean>bindToLifecycle(context))
                 .subscribe(new Observer<UpdateBean>() {
 
                     @Override
@@ -93,13 +94,12 @@ public class OkhttpDownload implements INetManager {
     }
 
     @Override
-    public void download(String url, final File apkFile, final INetDownLoadCallBack callBack) {
+    public void download(Fragment fragment, String url, final File apkFile, final INetDownLoadCallBack callBack) {
         if (!apkFile.exists()) {
             apkFile.getParentFile().mkdirs();
         }
-        service.download(url).subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
+        service.download(url).subscribeOn(Schedulers.io()).observeOn(Schedulers.io())
+                .compose(RxUtils.<ResponseBody>bindToLifecycle(fragment))
                 .subscribe(new Observer<ResponseBody>() {
                     Disposable disposable;
 

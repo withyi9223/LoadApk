@@ -1,5 +1,9 @@
 package com.cj.loadapk;
 
+import android.content.Context;
+
+import androidx.fragment.app.Fragment;
+
 import java.io.File;
 
 /**
@@ -27,8 +31,8 @@ import java.io.File;
  */
 interface INetManager {
 
-    void get(INetCallback callback);
+    void get(Context context,INetCallback callback);
 
-    void download(String url, File apkFile, INetDownLoadCallBack callBack);
+    void download(Fragment fragment, String url, File apkFile, INetDownLoadCallBack callBack);
     
 }
